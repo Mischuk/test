@@ -1,10 +1,11 @@
 {
-  "name": "@simulator/ecp-frontend",
+  "name": "my-react-library",
   "version": "0.1.0",
   "private": true,
   "engines": {
     "node": "18.x"
   },
+  "source": "src/index.ts",
   "main": "dist/my-react-library.cjs.js",
   "module": "dist/my-react-library.esm.js",
   "types": "dist/index.d.ts",
@@ -23,7 +24,7 @@
     "eject": "react-scripts eject",
     "dev": "concurrently \"react-scripts start\" \"php -S localhost:3001 -t api\"",
     "docs": "typedoc",
-    "build:bundle": "microbundle --entry src/index.ts --name SimulatorEcpFrontend"
+    "build:bundle": "microbundle"
   },
   "eslintConfig": {
     "extends": [
