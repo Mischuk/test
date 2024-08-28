@@ -1,13 +1,13 @@
 {
   "name": "my-react-library",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "engines": {
     "node": "18.x"
   },
   "main": "./dist/lib.umd.js",
   "module": "./dist/lib.module.js",
-  "source": "src/index.ts",
+  "source": "src/components/Develop/Develop.tsx",
   "scripts": {
     "start": "react-app-rewired start",
     "build": "yarn build:lib && yarn build:umd",
