@@ -1,0 +1,239 @@
+stages:
+  - build-image
+  - push-manifest
+  - deploy-on-eks-argocd
+
+#-----------------------EKS----------------------------------#
+.base_build: &base_build
+  stage: build-image
+  image: ${CI_REGISTRY}/hub.docker.com/library/docker:latest
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+      alias: docker
+  before_script:
+    - until docker info; do sleep 1; done
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" hub.corezoid.com
+  script:
+    - docker build --pull .
+      --tag hub.corezoid.com/${workspace}/${env}/${arch}/${APP_NAME}:${tag}
+      --tag hub.corezoid.com/public/${arch}/${APP_NAME}:${tag}
+      --build-arg CI_REGISTRY="hub.corezoid.com"
+      --build-arg ALPINE_IMAGE_VERSIN="${ALPINE_IMAGE_VERSIN}"
+      --build-arg NODE_IMAGE_TAG="18-alpine"
+      --squash
+
+    - docker push hub.corezoid.com/${workspace}/${env}/${arch}/${APP_NAME}:${tag}
+
+    - if [ ${env} == "prod" ]; then docker push hub.corezoid.com/public/${arch}/${APP_NAME}:${tag}; fi
+
+.base_push_manifest: &base_push_manifest
+  stage: push-manifest
+  image: ${CI_REGISTRY}/hub.docker.com/library/docker:latest
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+      alias: docker
+  before_script:
+    - until docker info; do sleep 1; done
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" hub.corezoid.com
+  script:
+    - docker manifest create hub.corezoid.com/${workspace}/${APP_NAME}:${tag}
+      --amend hub.corezoid.com/${source_workspace}/${env}/x86_64/${APP_NAME}:${tag}
+      --amend hub.corezoid.com/${source_workspace}/${env}/arm64/${APP_NAME}:${tag}
+
+    - docker manifest annotate --arch amd64 hub.corezoid.com/${workspace}/${APP_NAME}:${tag} hub.corezoid.com/${source_workspace}/${env}/x86_64/${APP_NAME}:${tag}
+    - docker manifest annotate --arch arm64 hub.corezoid.com/${workspace}/${APP_NAME}:${tag} hub.corezoid.com/${source_workspace}/${env}/arm64/${APP_NAME}:${tag}
+
+    - docker manifest inspect hub.corezoid.com/${workspace}/${APP_NAME}:${tag}
+
+    - docker manifest push --purge hub.corezoid.com/${workspace}/${APP_NAME}:${tag}
+
+.base_deploy_via_argocd: &base_deploy_via_argocd
+  stage: deploy-on-eks-argocd
+  variables:
+    ENV: ${ENV}
+    tag: ${tag}
+    APP_NAME: ${APP_NAME}
+    product: ${product}
+    argocd_env_dir: ${argocd_env_dir}
+  trigger:
+    project: pong/control-deploy
+    branch: main
+    strategy: depend
+
+#--------------DEV--------------#
+Build Dev for x86_64:
+  <<: *base_build
+  variables:
+    arch: x86_64
+    env: dev
+    workspace: ecp
+    tag: $CI_COMMIT_SHORT_SHA
+  only:
+    refs: [ update_pipeline, develop ]
+  tags:
+    - gitrunner-k8s-amd64
+
+Build Dev for arm64:
+  <<: *base_build
+  variables:
+    arch: arm64
+    env: dev
+    workspace: ecp
+    tag: $CI_COMMIT_SHORT_SHA
+  only:
+    refs: [ update_pipeline, develop ]
+  tags:
+    - gitrunner-k8s-arm64
+
+Push Manifest Develop:
+  <<: *base_push_manifest
+  variables:
+    env: dev
+    tag: $CI_COMMIT_SHORT_SHA
+    workspace: ecp
+    source_workspace: ecp
+  only:
+    refs: [ update_pipeline, develop ]
+  tags:
+    - gitrunner-k8s-amd64
+  needs:
+    - "Build Dev for x86_64"
+    - "Build Dev for arm64"
+
+Deploy Dev via ArgoCD:
+  <<: *base_deploy_via_argocd
+  variables:
+    ENV: dev
+    tag: $CI_COMMIT_SHORT_SHA
+    APP_NAME: ecp_frontend
+    product: ecp
+    argocd_env_dir: ecp-dev
+    commit_author: ${CI_COMMIT_AUTHOR}
+  only:
+    refs: [ update_pipeline, develop ]
+  needs:
+    - "Push Manifest Develop"
+
+#--------------PRE--------------#
+Build Pre for x86_64:
+  <<: *base_build
+  variables:
+    arch: x86_64
+    env: pre
+    workspace: ecp
+    tag: $CI_COMMIT_SHORT_SHA
+  only:
+    refs: [ master ]
+  except:
+    refs:
+      - tags
+  tags:
+    - gitrunner-k8s-amd64
+
+Build Pre for arm64:
+  <<: *base_build
+  variables:
+    arch: arm64
+    env: pre
+    workspace: ecp
+    tag: $CI_COMMIT_SHORT_SHA
+  only:
+    refs: [ master ]
+  except:
+    refs:
+      - tags
+  tags:
+    - gitrunner-k8s-arm64
+
+Push Manifest Pre:
+  <<: *base_push_manifest
+  variables:
+    env: pre
+    tag: $CI_COMMIT_SHORT_SHA
+    workspace: ecp
+    source_workspace: ecp
+  only:
+    refs: [ master ]
+  except:
+    refs:
+      - tags
+  tags:
+    - gitrunner-k8s-amd64
+  needs:
+    - "Build Pre for x86_64"
+    - "Build Pre for arm64"
+
+Deploy Pre via ArgoCD:
+  <<: *base_deploy_via_argocd
+  variables:
+    ENV: pre
+    tag: $CI_COMMIT_SHORT_SHA
+    APP_NAME: ecp_frontend
+    product: ecp
+    argocd_env_dir: ecp-pre
+    commit_author: ${CI_COMMIT_AUTHOR}
+  only:
+    refs: [ master ]
+  except:
+    refs:
+      - tags
+  needs:
+    - "Push Manifest Pre"
+
+#--------------PROD--------------#
+Build Prod for x86_64:
+  <<: *base_build
+  variables:
+    arch: x86_64
+    env: prod
+    workspace: ecp
+    tag: $CI_COMMIT_TAG
+  only:
+    refs: [ tags ]
+  tags:
+    - gitrunner-k8s-amd64
+
+Build Prod for arm64:
+  <<: *base_build
+  variables:
+    arch: arm64
+    env: prod
+    workspace: ecp
+    tag: $CI_COMMIT_TAG
+  only:
+    refs: [ tags ]
+  tags:
+    - gitrunner-k8s-arm64
+
+Push Manifest Prod:
+  <<: *base_push_manifest
+  variables:
+    env: prod
+    tag: $CI_COMMIT_TAG
+    workspace: public
+    source_workspace: ecp
+  only:
+    refs: [ tags ]
+  tags:
+    - gitrunner-k8s-amd64
+  needs:
+    - "Build Prod for x86_64"
+    - "Build Prod for arm64"
+
+Deploy Prod via ArgoCD:
+  <<: *base_deploy_via_argocd
+  variables:
+    ENV: prod
+    tag: $CI_COMMIT_TAG
+    APP_NAME: ecp_frontend
+    product: ecp
+    argocd_env_dir: ecp-prod
+    commit_author: ${CI_COMMIT_AUTHOR}
+  only:
+    refs: [ tags ]
+  needs:
+    - "Push Manifest Prod"

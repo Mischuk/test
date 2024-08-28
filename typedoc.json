@@ -1,0 +1,9 @@
+{
+  "entryPoints": ["src/entry.tsx", "src/types.ts"],
+  "out": "public/docs",
+  "plugin": ["typedoc-theme-hierarchy"],
+  "theme": "hierarchy",
+  "tsconfig": "./tsconfig.json",
+  "entryPointStrategy": "expand",
+  "name": "Sign widget"
+}

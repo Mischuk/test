@@ -1,0 +1,1 @@
+{"version":3,"file":"my-react-library.esm.js","sources":["../src/Output.tsx"],"sourcesContent":["import React from 'react';\n\nfunction Output() {\n  return <div>Hello, world!</div>;\n}\n\nexport default Output;\n"],"names":["Output","React"],"mappings":"qBAEA,SAASA,IACP,OAAOC,2CACT"}

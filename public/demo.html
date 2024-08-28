@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://ecp-dev.simulator.company/umd/signwidget.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 97vh;
+        margin: 0;
+        box-sizing: border-box;
+        padding: 24px;
+      }
+      .container {
+        max-width: 400px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 8px;
+      }
+      .input-group label {
+        margin-bottom: 8px;
+      }
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        color: #333;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+      .input-group input:focus,
+      .input-group select:focus {
+        border-color: #007bff;
+      }
+      .button {
+        padding: 12px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+      .button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <div class="input-group">
+          <label>
+            documentURL<span style="color: red">*</span>
+            <input type="text" id="documentURL" required />
+          </label>
+        </div>
+        <div class="input-group">
+          <label>
+            documentData
+            <input type="text" id="documentData" />
+          </label>
+        </div>
+        <div class="input-group">
+          <label>
+            callbackURL<span style="color: red">*</span>
+            <input type="text" id="callbackURL" required />
+          </label>
+        </div>
+        <div class="input-group">
+          <label>
+            lang
+            <select id="lang">
+              <option value="en">EN</option>
+              <option value="uk">UA</option>
+            </select>
+          </label>
+        </div>
+        <div class="input-group">
+          <label>
+            redirectURL
+            <input type="text" id="redirectURL" />
+          </label>
+        </div>
+        <div class="input-group">
+          <label>
+            ActorId
+            <input type="text" id="actorId" />
+          </label>
+        </div>
+        <button class="button" id="startButton">Sign document</button>
+      </div>
+    </div>
+    <div id="widget-container"></div>
+
+    <script>
+      const form = {
+        documentURL: 'https://ecp-dev.simulator.company/umd/test.json',
+        documentData: '',
+        callbackURL: 'https://callback.url',
+        lang: 'en',
+        redirectURL: '',
+        actorId: new Date().getTime().toString(),
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('documentURL').value = form.documentURL;
+        document.getElementById('documentData').value = form.documentData;
+        document.getElementById('callbackURL').value = form.callbackURL;
+        document.getElementById('lang').value = form.lang;
+        document.getElementById('redirectURL').value = form.redirectURL;
+        document.getElementById('actorId').value = form.actorId;
+      });
+
+      function lockRootScrollbar(state) {
+        document.documentElement.style.overflow = state;
+      }
+
+      document.querySelectorAll('input, select').forEach((element) => {
+        element.addEventListener('input', (event) => {
+          form[event.target.id] = event.target.value;
+        });
+      });
+
+      const widgetInstance = new SignWidget('widget-container');
+
+      document.getElementById('startButton').addEventListener('click', function () {
+        if (!form.actorId) {
+          alert('actorId is required');
+          return;
+        }
+
+        if (!form.callbackURL) {
+          alert('callbackURL is required');
+          return;
+        }
+
+        if (!form.documentURL && !form.documentData) {
+          alert('documentURL or documentData are required');
+          return;
+        }
+
+        lockRootScrollbar('hidden');
+        console.log('Show widget with form data:', form);
+        widgetInstance.open({
+          documentURL: form.documentURL,
+          documentData: form.documentData,
+          callbackURL: form.callbackURL,
+          lang: form.lang,
+          redirectURL: form.redirectURL,
+          actorId: form.actorId,
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+{"version":3,"file":"my-react-library.js","sources":["../src/Output.tsx"],"sourcesContent":["import React from 'react';\n\nfunction Output() {\n  return <div>Hello, world!</div>;\n}\n\nexport default Output;\n"],"names":["React"],"mappings":"8HAEA,WACE,OAAOA,mDACT"}

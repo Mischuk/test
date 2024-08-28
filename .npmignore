@@ -1,0 +1,26 @@
+# Исключаем ненужные файлы из npm-пакета
+
+# Исключаем исходные файлы, которые не нужны в пакете
+src/
+stories/
+.vscode/
+.vercel/
+api/
+node_modules/
+build/
+public/
+static/
+docs/
+scripts/
+
+# Исключаем тестовые файлы и конфигурации
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+jest.config.js
+.storybook/
+
+# Исключаем лог-файлы и конфигурации окружения
+*.log
+.env
