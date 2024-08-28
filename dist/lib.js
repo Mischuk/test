@@ -1,2 +1,2 @@
-var r=require("react/jsx-runtime");const e=()=>/*#__PURE__*/r.jsx("h1",{children:"A"}),s=()=>/*#__PURE__*/r.jsx("h1",{children:"B"});exports.A=e,exports.B=s,exports.MainComp=()=>/*#__PURE__*/r.jsxs(r.Fragment,{children:[/*#__PURE__*/r.jsx("h1",{children:"MainComp"}),/*#__PURE__*/r.jsx(e,{}),/*#__PURE__*/r.jsx(s,{})]});
+function e(e){return e&&"object"==typeof e&&"default"in e?e:{default:e}}var t=/*#__PURE__*/e(require("react"));exports.Output=function(){/*#__PURE__*/return t.default.createElement("div",null,"Hello, world!")};
 //# sourceMappingURL=lib.js.map

@@ -7,7 +7,7 @@
   },
   "main": "./dist/lib.umd.js",
   "module": "./dist/lib.module.js",
-  "source": "src/lib.package.js",
+  "source": "src/index.ts",
   "scripts": {
     "start": "react-app-rewired start",
     "build": "yarn build:lib && yarn build:umd",
