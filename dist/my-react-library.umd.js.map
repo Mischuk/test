@@ -1,1 +1,0 @@
-{"version":3,"file":"my-react-library.umd.js","sources":["../src/Output.tsx"],"sourcesContent":["import React from 'react';\n\nfunction Output() {\n  return <div>Hello, world!</div>;\n}\n\nexport default Output;\n"],"names":["React"],"mappings":"oXAEA,WACE,OAAOA,mDACT"}
