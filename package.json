@@ -16,7 +16,8 @@
     "eject": "react-scripts eject",
     "dev": "concurrently \"react-scripts start\" \"php -S localhost:3001 -t api\"",
     "docs": "typedoc",
-    "build:bundle": "microbundle"
+    "build:bundle": "microbundle",
+    "b": "microbundle --jsx React.createElement --jsxFragment React.Fragment --jsxImportSource react"
   },
   "eslintConfig": {
     "extends": [
